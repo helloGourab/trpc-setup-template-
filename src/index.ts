@@ -6,7 +6,8 @@ import {
   createOpenApiExpressMiddleware,
 } from "trpc-to-openapi";
 import fs from "fs/promises";
-import swaggerUi from 'swagger-ui-express'
+import swaggerUi from "swagger-ui-express";
+import { createContext } from "./server/context";
 import { appRouter } from "./server/index";
 
 const app = express();
@@ -17,6 +18,12 @@ const openapiDocument = generateOpenApiDocument(appRouter, {
   baseUrl: "http://localhost:8000/api",
   title: "My User API",
   version: "1.0.0",
+  securitySchemes: {
+    Authorization: {
+      type: "http",
+      scheme: "bearer",
+    },
+  },
 });
 
 // write it to a file so you can see it
@@ -30,7 +37,7 @@ app.get("/", (req, res) => {
   res.json({ status: "server is up" });
 });
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDocument))
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
 
 // serve the raw openapi json
 app.get("/openapi.json", (req, res) => {
@@ -42,7 +49,7 @@ app.use(
   "/api",
   createOpenApiExpressMiddleware({
     router: appRouter,
-    createContext: () => ({}),
+    createContext,
   }),
 );
 
@@ -51,7 +58,7 @@ app.use(
   "/trpc",
   trpcExpress.createExpressMiddleware({
     router: appRouter,
-    createContext: () => ({}),
+    createContext,
   }),
 );
 

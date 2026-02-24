@@ -1,7 +1,7 @@
 // src/server/index.ts ~annotator~
 import { z } from "zod";
 import { db } from "../db";
-import { publicProcedure, router } from "./trpc";
+import { publicProcedure, router, protectedProcedure } from "./trpc";
 
 export const appRouter = router({
   userList: publicProcedure
@@ -27,13 +27,14 @@ export const appRouter = router({
       return db.user.findMany();
     }),
 
-  userById: publicProcedure
+  userById: protectedProcedure
     .meta({
       openapi: {
         method: "GET",
         path: "/users/{id}",
         tags: ["Users"],
         description: "Get user by id",
+        protect: true,
       },
     })
     .input(z.object({ id: z.string() }))
